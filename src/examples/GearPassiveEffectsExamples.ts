@@ -1,23 +1,23 @@
-import { Entity } from './Entity';
+import { Entity } from '../core/Entity';
 import { 
   AdditiveEffect, 
   MultiplicativeEffect, 
   PercentageEffect
-} from './effects';
+} from '../core/effects';
 import { 
   ActiveEffectUtils,
   GenericGear
-} from './ActiveEffects';
+} from '../core/ActiveEffects';
 import {
   GearEffectApplicator,
-  GearEffectApplicatorUtils,
-  ExampleGearEffectApplicators
-} from './GearEffectApplicators';
+  GearEffectApplicatorUtils
+} from '../core/GearEffectApplicators';
+import { ExampleGearEffectApplicators } from './ExampleGearEffectApplicators';
 import { 
   effectApplicatorManager
-} from './EffectApplicator';
-import { eventSystem } from './EventSystem';
-import { EventType } from './types';
+} from '../core/EffectApplicator';
+import { eventSystem } from '../core/EventSystem';
+import { EventType } from '../core/types';
 
 /**
  * Comprehensive Gear Passive Effects Demonstration

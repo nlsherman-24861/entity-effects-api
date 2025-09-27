@@ -8,15 +8,15 @@ import {
   StateAdjuster,
   InteractionNotifier,
   InteractionDefinition
-} from './types';
-import { Entity } from './Entity';
+} from '../core/types';
+import { Entity } from '../core/Entity';
 import { 
   BaseInteractionModifier, 
   BaseStateAdjuster, 
   BaseInteractionNotifier,
   InteractionManager,
   interactionManager
-} from './InteractionSystem';
+} from '../core/InteractionSystem';
 
 /**
  * Example interaction modifier that reduces damage based on defense

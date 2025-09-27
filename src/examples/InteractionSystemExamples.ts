@@ -1,20 +1,20 @@
-import { Entity } from './Entity';
-import { AdditiveEffect } from './effects';
+import { Entity } from '../core/Entity';
+import { AdditiveEffect } from '../core/effects';
 import { 
   ActiveEffectUtils,
   GenericGear,
   BaseStatValueProvider
-} from './ActiveEffects';
+} from '../core/ActiveEffects';
 import {
   InteractionManager,
   interactionManager
-} from './InteractionSystem';
+} from '../core/InteractionSystem';
 import {
   setupExampleInteractionSystem,
   InteractionUtils
 } from './InteractionExamples';
-import { eventSystem } from './EventSystem';
-import { EventType } from './types';
+import { eventSystem } from '../core/EventSystem';
+import { EventType } from '../core/types';
 
 /**
  * Comprehensive Interaction System Demonstration
