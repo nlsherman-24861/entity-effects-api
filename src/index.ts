@@ -1,31 +1,5 @@
-import dotenv from 'dotenv';
-import { runExample, setupEventListeners } from './examples';
-
-// Load environment variables
-dotenv.config();
-
-// Main application entry point
-function main(): void {
-  console.log('🚀 Entity Effects API');
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`⏰ Started at: ${new Date().toISOString()}`);
-  console.log('=' .repeat(60));
-  
-  // Set up event listeners
-  setupEventListeners();
-  
-  // Run the comprehensive example
-  runExample();
-  
-  console.log('=' .repeat(60));
-  console.log('✅ Application completed successfully!');
-}
-
-// Run the application
-main();
-
-// Export the main components for external use
-export { Entity } from './Entity';
+// Pure barrel: export only core API (no example code)
+export { Entity } from './core/Entity';
 export { 
   AdditiveEffect, 
   MultiplicativeEffect, 
@@ -33,14 +7,14 @@ export {
   ConditionalEffect,
   ComplexEffect,
   BaseEffect 
-} from './effects';
-export { eventSystem, EventSystem } from './EventSystem';
-export { FrameManager } from './FrameManager';
+} from './core/effects';
+export { eventSystem, EventSystem } from './core/EventSystem';
+export { FrameManager } from './core/FrameManager';
 export { 
   OptimizedFrameContainer, 
   OptimizedFrameView, 
   FrameFactory 
-} from './OptimizedFrameSystem';
+} from './core/OptimizedFrameSystem';
 export { 
   effectApplicatorManager,
   EffectApplicatorManager,
@@ -49,7 +23,7 @@ export {
   PercentageThresholdApplicator,
   CustomEventApplicator,
   CooldownEffectApplicator
-} from './EffectApplicator';
+} from './core/EffectApplicator';
 export {
   RNGGenerator,
   BaseRNGGenerator,
@@ -66,7 +40,7 @@ export {
   Range,
   ProbabilityConfig,
   RNGResult
-} from './RNG';
+} from './core/RNG';
 export {
   RandomEffect,
   ChanceBasedEffect,
@@ -75,35 +49,19 @@ export {
   RandomEventApplicator,
   WeightedSelectionGenerator,
   RNGEffectsUtils
-} from './RNGEffects';
+} from './core/RNGEffects';
 export {
   BaseActiveEffect,
   GenericGear,
   BaseStatValueProvider,
   ActiveEffectUtils
-} from './ActiveEffects';
+} from './core/ActiveEffects';
 export {
   BaseInteractionModifier,
   BaseStateAdjuster,
   BaseInteractionNotifier,
   InteractionManager,
   interactionManager
-} from './InteractionSystem';
-export {
-  DefenseModifier,
-  CriticalHitModifier,
-  HealthDamageAdjuster,
-  HealthHealingAdjuster,
-  InteractionLogger,
-  EffectTriggerNotifier,
-  InteractionUtils,
-  setupExampleInteractionSystem
-} from './InteractionExamples';
-export {
-  GearEffectApplicator,
-  GearEffectApplicatorUtils,
-  ExampleGearEffectApplicators
-} from './GearEffectApplicators';
-export * from './types';
-
-export default main;
+} from './core/InteractionSystem';
+export { GearEffectApplicator, GearEffectApplicatorUtils } from './core/GearEffectApplicators';
+export * from './core/types';

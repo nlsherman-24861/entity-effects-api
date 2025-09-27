@@ -1,25 +1,25 @@
-import { Entity } from './Entity';
-import { AdditiveEffect } from './effects';
+import { Entity } from '../core/Entity';
+import { AdditiveEffect } from '../core/effects';
 import { 
   BaseActiveEffect,
   GenericGear,
   BaseStatValueProvider,
   ActiveEffectUtils
-} from './ActiveEffects';
+} from '../core/ActiveEffects';
 import { 
   rngManager,
   SeededRNG,
   WeightedRNG,
   WeightedChoice
-} from './RNG';
+} from '../core/RNG';
 import {
   RandomEffect,
   ChanceBasedEffect,
   WeightedRandomEffect,
   RNGEffectsUtils
-} from './RNGEffects';
-import { eventSystem } from './EventSystem';
-import { EventType } from './types';
+} from '../core/RNGEffects';
+import { eventSystem } from '../core/EventSystem';
+import { EventType } from '../core/types';
 
 /**
  * Consumer Example: Implementing RPG Concepts with Generic Active Effects and Gear System

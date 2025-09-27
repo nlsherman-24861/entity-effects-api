@@ -1,25 +1,25 @@
-import { Entity } from './Entity';
+import { Entity } from './core/Entity';
 import { 
   AdditiveEffect, 
   MultiplicativeEffect, 
   PercentageEffect, 
   ConditionalEffect,
   ComplexEffect 
-} from './effects';
-import { FrameManager } from './FrameManager';
+} from './core/effects';
+import { FrameManager } from './core/FrameManager';
 import { 
   effectApplicatorManager,
   StatThresholdApplicator,
   PercentageThresholdApplicator,
   CustomEventApplicator,
   CooldownEffectApplicator
-} from './EffectApplicator';
-import { eventSystem } from './EventSystem';
-import { EventType, FrameConfig } from './types';
-import { runRNGExample, setupRNGEventListeners } from './RNGExamples';
-import { runActiveEffectsExample, setupActiveEffectsEventListeners } from './ActiveEffectsExamples';
-import { runInteractionExample, setupInteractionEventListeners } from './InteractionSystemExamples';
-import { runGearPassiveEffectsExample, setupGearPassiveEffectsEventListeners } from './GearPassiveEffectsExamples';
+} from './core/EffectApplicator';
+import { eventSystem } from './core/EventSystem';
+import { EventType, FrameConfig } from './core/types';
+import { runRNGExample, setupRNGEventListeners } from './examples/RNGExamples';
+import { runActiveEffectsExample, setupActiveEffectsEventListeners } from './examples/ActiveEffectsExamples';
+import { runInteractionExample, setupInteractionEventListeners } from './examples/InteractionSystemExamples';
+import { runGearPassiveEffectsExample, setupGearPassiveEffectsEventListeners } from './examples/GearPassiveEffectsExamples';
 
 /**
  * Example usage of the Entity Effects API with event-driven effects

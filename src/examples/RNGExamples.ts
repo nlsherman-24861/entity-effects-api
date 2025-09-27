@@ -1,19 +1,19 @@
-import { Entity } from './Entity';
+import { Entity } from '../core/Entity';
 import { 
   AdditiveEffect, 
   MultiplicativeEffect, 
   PercentageEffect, 
   ConditionalEffect,
   ComplexEffect 
-} from './effects';
-import { FrameManager } from './FrameManager';
+} from '../core/effects';
+import { FrameManager } from '../core/FrameManager';
 import { 
   effectApplicatorManager,
   StatThresholdApplicator,
   PercentageThresholdApplicator,
   CustomEventApplicator,
   CooldownEffectApplicator
-} from './EffectApplicator';
+} from '../core/EffectApplicator';
 import {
   rngManager,
   SeededRNG,
@@ -23,7 +23,7 @@ import {
   WeightedChoice,
   Range,
   GaussianParams
-} from './RNG';
+} from '../core/RNG';
 import {
   RandomEffect,
   ChanceBasedEffect,
@@ -31,9 +31,9 @@ import {
   RandomEventApplicator,
   WeightedSelectionGenerator,
   RNGEffectsUtils
-} from './RNGEffects';
-import { eventSystem } from './EventSystem';
-import { EventType, FrameConfig } from './types';
+} from '../core/RNGEffects';
+import { eventSystem } from '../core/EventSystem';
+import { EventType, FrameConfig } from '../core/types';
 import { demonstrateConsumerRPGSystems } from './ConsumerRPGExamples';
 
 /**

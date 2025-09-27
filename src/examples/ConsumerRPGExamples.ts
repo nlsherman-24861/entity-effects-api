@@ -1,18 +1,18 @@
-import { Entity } from './Entity';
-import { AdditiveEffect } from './effects';
+import { Entity } from '../core/Entity';
+import { AdditiveEffect } from '../core/effects';
 import { 
   rngManager,
   SeededRNG,
   WeightedRNG,
   WeightedChoice
-} from './RNG';
+} from '../core/RNG';
 import {
   RandomEffect,
   ChanceBasedEffect,
   WeightedRandomEffect,
   RNGEffectsUtils,
   WeightedSelectionGenerator
-} from './RNGEffects';
+} from '../core/RNGEffects';
 
 /**
  * Consumer Example: Implementing RPG Concepts with Generic RNG System
