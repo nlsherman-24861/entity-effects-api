@@ -19,8 +19,15 @@ import {
   ActiveEffect,
   InteractionModifier,
   StateAdjuster,
-  InteractionNotifier
+  InteractionNotifier,
+  StatBoundConfig,
+  StatBoundResult,
+  BoundEventConfig,
+  BoundEventData,
+  BoundThresholdConfig,
+  DEFAULT_BOUND_THRESHOLDS
 } from './types';
+import { StatBoundCalculator } from './StatBoundCalculator';
 import { eventSystem } from './EventSystem';
 
 /**
@@ -38,6 +45,9 @@ export class Entity {
   private readonly _interactionModifiers: Map<string, InteractionModifier> = new Map();
   private readonly _stateAdjusters: Map<string, StateAdjuster> = new Map();
   private readonly _interactionNotifiers: Map<string, InteractionNotifier> = new Map();
+  private readonly _boundEventConfigs: Map<StatType, BoundEventConfig> = new Map();
+  private readonly _previousBoundStates: Map<StatType, string> = new Map();
+  private readonly _previousBoundRatios: Map<StatType, number> = new Map();
   private _lastCalculationTime: number = 0;
   
   constructor(id: EntityId, baseStats: BaseStats) {
@@ -628,7 +638,14 @@ export class Entity {
         previousValue: this._baseStats[statType]
       }
     });
+    
+    // Check and emit bound events
+    this.checkAndEmitBoundEvents();
   }
+  
+  
+  
+  
   
   /**
    * Cache management
@@ -664,5 +681,289 @@ export class Entity {
    */
   private emitEvent(event: Event): void {
     eventSystem.emit(event);
+  }
+  
+  // ===== Stat Bound Methods =====
+  
+  /**
+   * Calculate stat bounds for a specific stat type
+   * @param statType - The stat type to calculate bounds for
+   * @param config - Configuration for the bound calculation
+   * @returns The calculated bound result
+   */
+  calculateStatBounds(statType: StatType, config: StatBoundConfig): StatBoundResult {
+    const currentStats = this.getCurrentStats();
+    return StatBoundCalculator.calculateBounds(statType, config, currentStats);
+  }
+  
+  /**
+   * Calculate multiple stat bounds at once
+   * @param configs - Map of stat type to bound configuration
+   * @returns Map of stat type to bound result
+   */
+  calculateMultipleStatBounds(configs: Map<StatType, StatBoundConfig>): Map<StatType, StatBoundResult> {
+    const currentStats = this.getCurrentStats();
+    return StatBoundCalculator.calculateMultipleBounds(configs, currentStats);
+  }
+  
+  /**
+   * Get a stat bound with simple configuration
+   * @param statType - The stat type to get bounds for
+   * @param min - Minimum bound (default: 0)
+   * @param max - Maximum bound (default: 100)
+   * @param clampToBounds - Whether to clamp values to bounds (default: false)
+   * @returns The calculated bound result
+   */
+  getStatBounds(
+    statType: StatType,
+    min: number = 0,
+    max: number = 100,
+    clampToBounds: boolean = false
+  ): StatBoundResult {
+    const config = StatBoundCalculator.createSimpleBoundConfig(min, max, clampToBounds);
+    return this.calculateStatBounds(statType, config);
+  }
+  
+  /**
+   * Get a stat bound with stat-based configuration
+   * @param statType - The stat type to get bounds for
+   * @param minStat - Stat to use as minimum bound
+   * @param maxStat - Stat to use as maximum bound
+   * @param clampToBounds - Whether to clamp values to bounds (default: false)
+   * @returns The calculated bound result
+   */
+  getStatBasedBounds(
+    statType: StatType,
+    minStat: StatType,
+    maxStat: StatType,
+    clampToBounds: boolean = false
+  ): StatBoundResult {
+    const config = StatBoundCalculator.createStatBasedBoundConfig(minStat, maxStat, clampToBounds);
+    return this.calculateStatBounds(statType, config);
+  }
+  
+  /**
+   * Get ratio of a stat within its bounds
+   * @param statType - The stat type to get ratio for
+   * @param config - Bound configuration
+   * @returns Ratio value (0.0-1.0)
+   */
+  getStatRatioFromBounds(statType: StatType, config: StatBoundConfig): number {
+    const result = this.calculateStatBounds(statType, config);
+    return StatBoundCalculator.calculateRatio(result);
+  }
+  
+  /**
+   * Get percentage of a stat within its bounds
+   * @param statType - The stat type to get percentage for
+   * @param config - Bound configuration
+   * @returns Percentage value (0-100)
+   */
+  getStatPercentageFromBounds(statType: StatType, config: StatBoundConfig): number {
+    const result = this.calculateStatBounds(statType, config);
+    return StatBoundCalculator.calculatePercentage(result);
+  }
+  
+  /**
+   * Check if a stat is at its minimum bound
+   * @param statType - The stat type to check
+   * @param config - Bound configuration
+   * @param tolerance - Tolerance for equality check (default: 0.001)
+   * @returns true if stat is at minimum bound
+   */
+  isStatAtMin(statType: StatType, config: StatBoundConfig, tolerance: number = 0.001): boolean {
+    const result = this.calculateStatBounds(statType, config);
+    return StatBoundCalculator.isAtMin(result, tolerance);
+  }
+  
+  /**
+   * Check if a stat is at its maximum bound
+   * @param statType - The stat type to check
+   * @param config - Bound configuration
+   * @param tolerance - Tolerance for equality check (default: 0.001)
+   * @returns true if stat is at maximum bound
+   */
+  isStatAtMax(statType: StatType, config: StatBoundConfig, tolerance: number = 0.001): boolean {
+    const result = this.calculateStatBounds(statType, config);
+    return StatBoundCalculator.isAtMax(result, tolerance);
+  }
+  
+  /**
+   * Check if a stat is within its bounds
+   * @param statType - The stat type to check
+   * @param config - Bound configuration
+   * @param tolerance - Tolerance for bounds check (default: 0.001)
+   * @returns true if stat is within bounds
+   */
+  isStatWithinBounds(statType: StatType, config: StatBoundConfig, tolerance: number = 0.001): boolean {
+    const result = this.calculateStatBounds(statType, config);
+    return StatBoundCalculator.isWithinBounds(result, tolerance);
+  }
+  
+  // ===== Bound Event Management =====
+  
+  /**
+   * Register a bound event configuration for a stat type
+   * @param config - Bound event configuration
+   */
+  registerBoundEventConfig(config: BoundEventConfig): void {
+    this._boundEventConfigs.set(config.statType, config);
+  }
+  
+  /**
+   * Unregister a bound event configuration for a stat type
+   * @param statType - The stat type to unregister
+   */
+  unregisterBoundEventConfig(statType: StatType): void {
+    this._boundEventConfigs.delete(statType);
+    this._previousBoundStates.delete(statType);
+    this._previousBoundRatios.delete(statType);
+  }
+  
+  /**
+   * Get all registered bound event configurations
+   * @returns Map of stat type to bound event configuration
+   */
+  getBoundEventConfigs(): Map<StatType, BoundEventConfig> {
+    return new Map(this._boundEventConfigs);
+  }
+  
+  /**
+   * Check and emit bound events for all registered stat types
+   * This should be called whenever stats change
+   */
+  checkAndEmitBoundEvents(): void {
+    const currentStats = this.getCurrentStats();
+    
+    for (const [statType, config] of this._boundEventConfigs) {
+      this.checkAndEmitBoundEventsForStat(statType, config, currentStats);
+    }
+  }
+  
+  /**
+   * Check and emit bound events for a specific stat type
+   * @param statType - The stat type to check
+   * @param config - The bound event configuration
+   * @param currentStats - Current entity stats
+   */
+  private checkAndEmitBoundEventsForStat(
+    statType: StatType, 
+    config: BoundEventConfig, 
+    currentStats: StatMap
+  ): void {
+    const boundResult = StatBoundCalculator.calculateBounds(statType, config.boundConfig, currentStats);
+    const currentRatio = StatBoundCalculator.calculateRatio(boundResult);
+    const currentState = StatBoundCalculator.getStateDescription(
+      boundResult, 
+      config.thresholdConfig ?? DEFAULT_BOUND_THRESHOLDS
+    );
+    
+    const previousRatio = this._previousBoundRatios.get(statType);
+    const previousState = this._previousBoundStates.get(statType);
+    
+    // Calculate changes
+    const ratioChange = previousRatio !== undefined ? currentRatio - previousRatio : undefined;
+    const stateChanged = previousState !== currentState;
+    const ratioChanged = previousRatio !== undefined && Math.abs(currentRatio - previousRatio) > 0.001;
+    
+    // Create event data
+    const eventData: BoundEventData = {
+      statType,
+      boundResult,
+      previousRatio,
+      ratioChange,
+      previousState,
+      currentState,
+      distanceFromMin: StatBoundCalculator.calculateDistanceFromMin(boundResult),
+      distanceFromMax: StatBoundCalculator.calculateDistanceFromMax(boundResult),
+      isAtMin: StatBoundCalculator.isAtMin(boundResult),
+      isAtMax: StatBoundCalculator.isAtMax(boundResult),
+      isWithinBounds: StatBoundCalculator.isWithinBounds(boundResult)
+    };
+    
+    // Emit events based on changes
+    if (stateChanged) {
+      this.emitEvent({
+        type: EventType.BOUND_STATE_CHANGED,
+        timestamp: Date.now(),
+        data: eventData
+      });
+    }
+    
+    if (ratioChanged && this.shouldEmitRatioChangeEvent(eventData, config)) {
+      this.emitEvent({
+        type: EventType.BOUND_RATIO_CHANGED,
+        timestamp: Date.now(),
+        data: eventData
+      });
+    }
+    
+    if (this.shouldEmitThresholdCrossedEvent(eventData, config)) {
+      this.emitEvent({
+        type: EventType.BOUND_THRESHOLD_CROSSED,
+        timestamp: Date.now(),
+        data: eventData
+      });
+    }
+    
+    // Update previous values
+    this._previousBoundRatios.set(statType, currentRatio);
+    this._previousBoundStates.set(statType, currentState);
+  }
+  
+  /**
+   * Check if a ratio change event should be emitted
+   * @param eventData - The bound event data
+   * @param config - The bound event configuration
+   * @returns true if event should be emitted
+   */
+  private shouldEmitRatioChangeEvent(eventData: BoundEventData, config: BoundEventConfig): boolean {
+    if (!eventData.ratioChange) return false;
+    
+    // Check ratio change threshold
+    if (config.ratioChangeThreshold) {
+      const absChange = Math.abs(eventData.ratioChange);
+      if (absChange < config.ratioChangeThreshold) {
+        return false;
+      }
+    }
+    
+    // Check positive/negative change filters
+    if (config.positiveChangeOnly && eventData.ratioChange <= 0) {
+      return false;
+    }
+    
+    if (config.negativeChangeOnly && eventData.ratioChange >= 0) {
+      return false;
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Check if a threshold crossed event should be emitted
+   * @param eventData - The bound event data
+   * @param config - The bound event configuration
+   * @returns true if event should be emitted
+   */
+  private shouldEmitThresholdCrossedEvent(eventData: BoundEventData, config: BoundEventConfig): boolean {
+    // Check distance from bounds
+    if (config.minDistanceFromMin && eventData.distanceFromMin < config.minDistanceFromMin) {
+      return false;
+    }
+    
+    if (config.minDistanceFromMax && eventData.distanceFromMax < config.minDistanceFromMax) {
+      return false;
+    }
+    
+    if (config.maxDistanceFromMin && eventData.distanceFromMin > config.maxDistanceFromMin) {
+      return false;
+    }
+    
+    if (config.maxDistanceFromMax && eventData.distanceFromMax > config.maxDistanceFromMax) {
+      return false;
+    }
+    
+    return true;
   }
 }

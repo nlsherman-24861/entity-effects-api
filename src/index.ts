@@ -41,14 +41,9 @@ export {
   ProbabilityConfig,
   RNGResult
 } from './core/RNG';
-export {
-  RandomEffect,
-  ChanceBasedEffect,
-  WeightedRandomEffect,
-  ConditionalProbabilityEffect,
-  RandomEventApplicator,
-  WeightedSelectionGenerator,
-  RNGEffectsUtils
+export { 
+  RandomEventApplicator, 
+  WeightedSelectionGenerator 
 } from './core/RNGEffects';
 export {
   BaseActiveEffect,
@@ -64,4 +59,18 @@ export {
   interactionManager
 } from './core/InteractionSystem';
 export { GearEffectApplicator, GearEffectApplicatorUtils } from './core/GearEffectApplicators';
+export { StatBoundCalculator } from './core/StatBoundCalculator';
+export { 
+  BoundStateApplicator, 
+  BoundThresholdApplicator, 
+  BoundRatioChangeApplicator 
+} from './core/EffectApplicator';
+export { 
+  ComposedEffect, 
+  ComposedEffectBuilder 
+} from './core/ComposedEffect';
+export { 
+  EffectFactory 
+} from './core/EffectFactory';
+export * from './core/EffectComponents';
 export * from './core/types';

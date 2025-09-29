@@ -398,14 +398,23 @@ export class InteractionManager {
    * Emit an interaction event
    */
   private emitInteractionEvent(context: InteractionContext, eventType: string, data: any): void {
-    eventSystem.emitEvent(EventType.CUSTOM_EVENT, {
-      type: 'interaction_event',
+    // Map interaction event types to EventType enum values
+    const eventTypeMap: Record<string, EventType> = {
+      'value_requested': EventType.INTERACTION_VALUE_REQUESTED,
+      'value_modified': EventType.INTERACTION_VALUE_MODIFIED,
+      'state_adjusted': EventType.INTERACTION_STATE_ADJUSTED,
+      'notifications_sent': EventType.INTERACTION_NOTIFICATIONS_SENT,
+      'interaction_completed': EventType.INTERACTION_COMPLETED
+    };
+
+    const mappedEventType = eventTypeMap[eventType] || EventType.CUSTOM_EVENT;
+    
+    eventSystem.emitEvent(mappedEventType, {
       interactionId: context.interactionId,
       interactionType: context.interactionType,
       phase: context.phase,
-      eventType,
       timestamp: Date.now(),
-      data
+      ...data
     });
   }
 

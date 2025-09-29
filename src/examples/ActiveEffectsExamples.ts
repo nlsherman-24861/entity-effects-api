@@ -23,13 +23,10 @@ import {
   GaussianParams
 } from '../core/RNG';
 import {
-  RandomEffect,
-  ChanceBasedEffect,
-  WeightedRandomEffect,
   RandomEventApplicator,
-  WeightedSelectionGenerator,
-  RNGEffectsUtils
+  WeightedSelectionGenerator
 } from '../core/RNGEffects';
+import { EffectFactory } from '../core/EffectFactory';
 import {
   BaseActiveEffect,
   GenericGear,
@@ -38,7 +35,6 @@ import {
 } from '../core/ActiveEffects';
 import { eventSystem } from '../core/EventSystem';
 import { EventType, FrameConfig } from '../core/types';
-import { demonstrateConsumerRPGActiveEffects } from './ConsumerRPGActiveEffects';
 
 /**
  * Comprehensive Active Effects and Gear System Demonstration
@@ -412,9 +408,6 @@ function runActiveEffectsExample(): void {
   console.log('- Entities can request values for any purpose with arbitrary parameters');
   console.log('- All implementations use generic BaseActiveEffect and GenericGear');
   
-  // Demonstrate consumer RPG systems
-  console.log('\n' + '='.repeat(60));
-  demonstrateConsumerRPGActiveEffects();
 }
 
 /**

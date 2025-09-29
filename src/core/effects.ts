@@ -4,8 +4,13 @@ import {
   EffectContext, 
   StatType, 
   StatValue,
-  StatStackability
+  StatStackability,
+  StatBoundConfig,
+  StatBoundResult,
+  BoundThresholdConfig,
+  DEFAULT_BOUND_THRESHOLDS
 } from './types';
+import { StatBoundCalculator } from './StatBoundCalculator';
 
 /**
  * Abstract base class for effects with per-stat-type stackability
@@ -269,3 +274,6 @@ export class ComplexEffect extends BaseEffect {
     return this.conditionFn ? this.conditionFn(context) : true;
   }
 }
+
+// Note: Bound-based effects have been moved to the composition system
+// Use EffectFactory.createBoundBasedEffect() instead

@@ -5,6 +5,12 @@
 // Base stat value type - all stats are floating point numbers
 export type StatValue = number;
 
+// Bound value type - represents a stat bound (min or max)
+export type StatBound = number;
+
+// Bound function type - function that calculates a bound from entity stats
+export type StatBoundFunction = (stats: StatMap) => StatBound;
+
 // Unique identifier for entities
 export type EntityId = string;
 
@@ -451,6 +457,8 @@ export interface EffectContext {
   readonly currentStats: StatMap;
   readonly baseStats: BaseStats;
   readonly timestamp: number;
+  readonly boundConfigs?: Map<StatType, StatBoundConfig>; // Optional bound configurations
+  readonly boundResults?: Map<StatType, StatBoundResult>; // Optional bound calculation results
 }
 
 /**
@@ -514,6 +522,15 @@ export enum EventType {
   FRAME_CREATED = 'frame_created',
   GEAR_EQUIPPED = 'gear_equipped',
   GEAR_UNEQUIPPED = 'gear_unequipped',
+  BOUND_STATE_CHANGED = 'bound_state_changed',
+  BOUND_THRESHOLD_CROSSED = 'bound_threshold_crossed',
+  BOUND_RATIO_CHANGED = 'bound_ratio_changed',
+  // Interaction events
+  INTERACTION_VALUE_REQUESTED = 'interaction_value_requested',
+  INTERACTION_VALUE_MODIFIED = 'interaction_value_modified',
+  INTERACTION_STATE_ADJUSTED = 'interaction_state_adjusted',
+  INTERACTION_NOTIFICATIONS_SENT = 'interaction_notifications_sent',
+  INTERACTION_COMPLETED = 'interaction_completed',
   CUSTOM_EVENT = 'custom_event'
 }
 
@@ -547,4 +564,144 @@ export interface EffectCacheEntry {
   readonly effect: Effect;
   readonly isActive: boolean;
   readonly timestamp: number;
+}
+
+
+/**
+ * Configuration for stat bounds (min/max values)
+ */
+export interface StatBoundConfig {
+  readonly min?: StatBound | StatBoundFunction; // Minimum bound (fixed value or function)
+  readonly max?: StatBound | StatBoundFunction; // Maximum bound (fixed value or function)
+  readonly clampToBounds?: boolean; // Whether to clamp stat values to bounds
+  readonly defaultValue?: StatValue; // Default value if bounds are invalid
+}
+
+/**
+ * Result of a stat bound calculation
+ */
+export interface StatBoundResult {
+  readonly statType: StatType;
+  readonly currentValue: StatValue;
+  readonly minBound: StatBound;
+  readonly maxBound: StatBound;
+  readonly isClamped: boolean; // whether the current value was clamped
+  readonly config: StatBoundConfig;
+}
+
+/**
+ * Configuration for bound state thresholds
+ */
+export interface BoundThresholdConfig {
+  readonly critical?: number; // Threshold below which is considered critical
+  readonly low?: number; // Threshold below which is considered low
+  readonly high?: number; // Threshold above which is considered high
+  readonly full?: number; // Threshold above which is considered full
+  readonly empty?: number; // Threshold below which is considered empty
+}
+
+/**
+ * Default threshold configuration
+ */
+export const DEFAULT_BOUND_THRESHOLDS: BoundThresholdConfig = {
+  critical: 0.25,
+  low: 0.5,
+  high: 0.75,
+  full: 1.0,
+  empty: 0.0
+};
+
+/**
+ * Configuration for bound event triggers
+ */
+export interface BoundEventConfig {
+  readonly statType: StatType;
+  readonly boundConfig: StatBoundConfig;
+  readonly ratioChangeThreshold?: number; // Minimum ratio change to trigger event (0.0-1.0)
+  readonly positiveChangeOnly?: boolean; // Only trigger on positive ratio changes
+  readonly negativeChangeOnly?: boolean; // Only trigger on negative ratio changes
+  readonly minDistanceFromMin?: number; // Minimum distance from lower bound to trigger
+  readonly minDistanceFromMax?: number; // Minimum distance from upper bound to trigger
+  readonly maxDistanceFromMin?: number; // Maximum distance from lower bound to trigger
+  readonly maxDistanceFromMax?: number; // Maximum distance from upper bound to trigger
+  readonly thresholdConfig?: BoundThresholdConfig; // Thresholds for state changes
+}
+
+/**
+ * Bound event data
+ */
+export interface BoundEventData {
+  readonly statType: StatType;
+  readonly boundResult: StatBoundResult;
+  readonly previousRatio?: number; // Previous ratio value
+  readonly ratioChange?: number; // Change in ratio (current - previous)
+  readonly previousState?: string; // Previous state description
+  readonly currentState: string; // Current state description
+  readonly distanceFromMin: number; // Current distance from minimum bound
+  readonly distanceFromMax: number; // Current distance from maximum bound
+  readonly isAtMin: boolean; // Whether currently at minimum bound
+  readonly isAtMax: boolean; // Whether currently at maximum bound
+  readonly isWithinBounds: boolean; // Whether currently within bounds
+}
+
+// ===== Effect Composition Interfaces =====
+
+/**
+ * Determines when an effect should be applicable
+ */
+export interface EffectApplicability {
+  /**
+   * Check if the effect should be applicable in the given context
+   * @param context - The current effect context
+   * @returns true if the effect should be applicable
+   */
+  isApplicable(context: EffectContext): boolean;
+}
+
+/**
+ * Calculates the impact/change amount for a stat
+ */
+export interface EffectImpact {
+  /**
+   * Calculate the impact amount for a specific stat type
+   * @param context - The current effect context
+   * @param statType - The stat type to calculate impact for
+   * @returns The impact amount (positive or negative)
+   */
+  calculateImpact(context: EffectContext, statType: StatType): StatValue;
+}
+
+/**
+ * Determines which stat types an effect should target
+ */
+export interface EffectTarget {
+  /**
+   * Get the stat types that this effect should target
+   * @param context - The current effect context
+   * @returns Array of stat types to target
+   */
+  getTargets(context: EffectContext): StatType[];
+}
+
+/**
+ * Determines how an effect should be applied to stats
+ */
+export interface EffectApplication {
+  /**
+   * Apply the calculated impact to a stat
+   * @param context - The current effect context
+   * @param stats - The stats map to modify
+   * @param statType - The stat type to modify
+   * @param impact - The calculated impact amount
+   */
+  applyImpact(context: EffectContext, stats: StatMap, statType: StatType, impact: StatValue): void;
+  
+  /**
+   * Reverse the calculated impact from a stat
+   * @param context - The current effect context
+   * @param stats - The stats map to modify
+   * @param statType - The stat type to modify
+   * @param impact - The calculated impact amount
+   */
+  reverseImpact(context: EffectContext, stats: StatMap, statType: StatType, impact: StatValue): void;
 }

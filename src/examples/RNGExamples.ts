@@ -25,16 +25,12 @@ import {
   GaussianParams
 } from '../core/RNG';
 import {
-  RandomEffect,
-  ChanceBasedEffect,
-  WeightedRandomEffect,
   RandomEventApplicator,
-  WeightedSelectionGenerator,
-  RNGEffectsUtils
+  WeightedSelectionGenerator
 } from '../core/RNGEffects';
+import { EffectFactory } from '../core/EffectFactory';
 import { eventSystem } from '../core/EventSystem';
 import { EventType, FrameConfig } from '../core/types';
-import { demonstrateConsumerRPGSystems } from './ConsumerRPGExamples';
 
 /**
  * Comprehensive RNG System Demonstration
@@ -143,7 +139,7 @@ function runRNGExample(): void {
   console.log('\n✨ Creating RNG-Based Effects...');
   
   // Random power boost effect
-  const randomPowerBoost = RNGEffectsUtils.createUniformRandomEffect(
+  const randomPowerBoost = EffectFactory.createRandomEffect(
     'random-power-boost',
     'Random Power Boost',
     'power',
@@ -153,17 +149,17 @@ function runRNGExample(): void {
   );
   
   // Chance-based effect
-  const chanceBasedEffect = RNGEffectsUtils.createChanceBasedEffect(
+  const chanceBasedEffect = EffectFactory.createChanceBasedEffect(
     'chance-boost',
     'Chance-Based Boost',
     'power',
     0.3, // 30% chance
-    (baseValue) => baseValue * 1.5, // 50% increase
+    (baseValue: number) => baseValue * 1.5, // 50% increase
     seededRNG
   );
   
   // Weighted random effect
-  const weightedRandomEffect = RNGEffectsUtils.createWeightedRandomEffect(
+  const weightedRandomEffect = EffectFactory.createWeightedRandomEffect(
     'weighted-random',
     'Weighted Random Effect',
     [
@@ -253,7 +249,7 @@ function runRNGExample(): void {
   console.log('Initial frame created with RNG seed:', initialFrame.metadata?.rngSeed);
   
   // Apply some random effects and create another frame
-  const randomEffect = RNGEffectsUtils.createUniformRandomEffect(
+  const randomEffect = EffectFactory.createRandomEffect(
     'frame-random',
     'Frame Random Effect',
     'power',
@@ -290,9 +286,6 @@ function runRNGExample(): void {
   
   console.log('\n✅ RNG System Demonstration completed successfully!');
   
-  // Demonstrate consumer RPG systems
-  console.log('\n' + '='.repeat(60));
-  demonstrateConsumerRPGSystems();
 }
 
 /**

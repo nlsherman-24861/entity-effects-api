@@ -2,17 +2,12 @@ import { Entity } from '../core/Entity';
 import { AdditiveEffect } from '../core/effects';
 import { 
   ActiveEffectUtils,
-  GenericGear,
   BaseStatValueProvider
 } from '../core/ActiveEffects';
 import {
   InteractionManager,
   interactionManager
 } from '../core/InteractionSystem';
-import {
-  setupExampleInteractionSystem,
-  InteractionUtils
-} from './InteractionExamples';
 import { eventSystem } from '../core/EventSystem';
 import { EventType } from '../core/types';
 
@@ -22,8 +17,6 @@ import { EventType } from '../core/types';
 export function runInteractionExample(): void {
   console.log('🤝 Interaction System Demonstration');
 
-  // Setup the example interaction system
-  setupExampleInteractionSystem();
 
   // Create entities with interaction-relevant stats
   const player = new Entity('player-interaction', {
@@ -261,16 +254,20 @@ export function runInteractionExample(): void {
 
   // Demonstrate custom interaction definition
   console.log('\n🔧 Custom Interaction Definition:');
-  const customInteraction = InteractionUtils.createGenericInteraction(
-    'custom-interaction',
-    'Custom Interaction',
-    'custom',
-    'custom_value',
-    {
+  const customInteraction = {
+    id: 'custom-interaction',
+    name: 'Custom Interaction',
+    interactionType: 'custom',
+    valuePurpose: 'custom_value',
+    valueParameters: {
       customParameter: 'test',
       multiplier: 1.5
-    }
-  );
+    },
+    phases: ['initiation', 'value_request', 'value_modification', 'state_adjustment', 'notification', 'completion'] as any,
+    modifiers: [],
+    stateAdjusters: [],
+    notifiers: []
+  };
 
   interactionManager.registerInteractionDefinition(customInteraction);
   console.log('Registered custom interaction definition');
@@ -298,11 +295,30 @@ export function runInteractionExample(): void {
  * Set up event listeners for interaction system
  */
 export function setupInteractionEventListeners(): void {
+  // Listen for specific interaction events
+  eventSystem.on(EventType.INTERACTION_VALUE_REQUESTED, (event) => {
+    console.log(`🤝 Interaction Event: value_requested in ${event.data.interactionType} (${event.data.phase})`);
+  });
+
+  eventSystem.on(EventType.INTERACTION_VALUE_MODIFIED, (event) => {
+    console.log(`🤝 Interaction Event: value_modified in ${event.data.interactionType} (${event.data.phase})`);
+  });
+
+  eventSystem.on(EventType.INTERACTION_STATE_ADJUSTED, (event) => {
+    console.log(`🤝 Interaction Event: state_adjusted in ${event.data.interactionType} (${event.data.phase})`);
+  });
+
+  eventSystem.on(EventType.INTERACTION_NOTIFICATIONS_SENT, (event) => {
+    console.log(`🤝 Interaction Event: notifications_sent in ${event.data.interactionType} (${event.data.phase})`);
+  });
+
+  eventSystem.on(EventType.INTERACTION_COMPLETED, (event) => {
+    console.log(`🤝 Interaction Event: interaction_completed in ${event.data.interactionType} (${event.data.phase})`);
+  });
+
+  // Keep CUSTOM_EVENT for other interaction-related events
   eventSystem.on(EventType.CUSTOM_EVENT, (event) => {
-    if (event.data?.type === 'interaction_event') {
-      const interactionData = event.data;
-      console.log(`🤝 Interaction Event: ${interactionData.eventType} in ${interactionData.interactionType} (${interactionData.phase})`);
-    } else if (event.data?.type === 'interaction_modifier_registered') {
+    if (event.data?.type === 'interaction_modifier_registered') {
       console.log(`🔧 Interaction modifier registered: ${event.data.modifierName} for entity ${event.data.entityId}`);
     } else if (event.data?.type === 'state_adjuster_registered') {
       console.log(`⚙️ State adjuster registered: ${event.data.adjusterName} for entity ${event.data.entityId}`);

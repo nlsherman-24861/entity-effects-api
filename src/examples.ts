@@ -20,6 +20,10 @@ import { runRNGExample, setupRNGEventListeners } from './examples/RNGExamples';
 import { runActiveEffectsExample, setupActiveEffectsEventListeners } from './examples/ActiveEffectsExamples';
 import { runInteractionExample, setupInteractionEventListeners } from './examples/InteractionSystemExamples';
 import { runGearPassiveEffectsExample, setupGearPassiveEffectsEventListeners } from './examples/GearPassiveEffectsExamples';
+import { runStatBoundExamples } from './examples/StatBoundExamples';
+import { runBoundEventExamples } from './examples/BoundEventExamples';
+import { runCompositionExamples } from './examples/CompositionExamples';
+import { runRNGCompositionExamples } from './examples/RNGCompositionExamples';
 
 /**
  * Example usage of the Entity Effects API with event-driven effects
@@ -411,6 +415,22 @@ function runExample(): void {
       // Run gear passive effects demonstration
       console.log('\n' + '='.repeat(60));
       runGearPassiveEffectsExample();
+
+      // Run stat bound system demonstration
+      console.log('\n' + '='.repeat(60));
+      runStatBoundExamples();
+      
+      // Run bound event system demonstration
+      console.log('\n' + '='.repeat(60));
+      runBoundEventExamples();
+      
+      // Run composition system demonstration
+      console.log('\n' + '='.repeat(60));
+      runCompositionExamples();
+      
+      // Run RNG composition system demonstration
+      console.log('\n' + '='.repeat(60));
+      runRNGCompositionExamples();
     }
 
 /**

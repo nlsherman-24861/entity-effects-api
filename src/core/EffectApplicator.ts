@@ -8,10 +8,17 @@ import {
   EffectContext,
   EntityId,
   StatType,
-  StatValue
+  StatValue,
+  StatBoundConfig,
+  StatBoundResult,
+  BoundEventConfig,
+  BoundEventData,
+  BoundThresholdConfig,
+  DEFAULT_BOUND_THRESHOLDS
 } from './types';
 import { Entity } from './Entity';
 import { eventSystem } from './EventSystem';
+import { StatBoundCalculator } from './StatBoundCalculator';
 
 /**
  * Base implementation of EffectApplicator
@@ -561,6 +568,188 @@ export class EffectApplicatorManager {
         // For now, we'll handle it in the examples
       });
     });
+  }
+}
+
+/**
+ * Bound-based effect applicator that triggers effects based on bound state changes
+ */
+export class BoundStateApplicator extends BaseEffectApplicator {
+  private readonly _previousStates: Map<EntityId, string> = new Map();
+  
+  constructor(
+    id: string,
+    name: string,
+    private readonly boundEventConfig: BoundEventConfig,
+    effectsToAdd: Effect[],
+    effectsToRemove: EffectId[] = []
+  ) {
+    const conditions: EffectCondition[] = [
+      {
+        eventType: EventType.BOUND_STATE_CHANGED,
+        predicate: (event, context) => {
+          const eventData = event.data as BoundEventData;
+          return eventData.statType === boundEventConfig.statType;
+        },
+        description: `Bound state changed for ${boundEventConfig.statType}`
+      }
+    ];
+    
+    super(id, name, conditions, effectsToAdd, effectsToRemove);
+  }
+  
+  handleEvent(event: Event, entityId: EntityId): boolean {
+    return false; // Not used for bound applicators
+  }
+  
+  handleEventWithEntity(event: Event, entity: Entity): boolean {
+    const eventData = event.data as BoundEventData;
+    const previousState = this._previousStates.get(entity.id);
+    
+    // Check if state actually changed
+    if (previousState === eventData.currentState) {
+      return false;
+    }
+    
+    // Update previous state
+    this._previousStates.set(entity.id, eventData.currentState);
+    
+    return this.addEffects(entity);
+  }
+}
+
+/**
+ * Bound threshold applicator that triggers effects when bound ratios cross thresholds
+ */
+export class BoundThresholdApplicator extends BaseEffectApplicator {
+  private readonly _previousRatios: Map<EntityId, number> = new Map();
+  
+  constructor(
+    id: string,
+    name: string,
+    private readonly boundEventConfig: BoundEventConfig,
+    effectsToAdd: Effect[],
+    effectsToRemove: EffectId[] = []
+  ) {
+    const conditions: EffectCondition[] = [
+      {
+        eventType: EventType.BOUND_THRESHOLD_CROSSED,
+        predicate: (event, context) => {
+          const eventData = event.data as BoundEventData;
+          return eventData.statType === boundEventConfig.statType;
+        },
+        description: `Bound threshold crossed for ${boundEventConfig.statType}`
+      }
+    ];
+    
+    super(id, name, conditions, effectsToAdd, effectsToRemove);
+  }
+  
+  handleEvent(event: Event, entityId: EntityId): boolean {
+    return false; // Not used for bound applicators
+  }
+  
+  handleEventWithEntity(event: Event, entity: Entity): boolean {
+    const eventData = event.data as BoundEventData;
+    const previousRatio = this._previousRatios.get(entity.id);
+    
+    // Check ratio change threshold
+    if (this.boundEventConfig.ratioChangeThreshold && eventData.ratioChange) {
+      const absChange = Math.abs(eventData.ratioChange);
+      if (absChange < this.boundEventConfig.ratioChangeThreshold) {
+        return false;
+      }
+    }
+    
+    // Check positive/negative change filters
+    if (this.boundEventConfig.positiveChangeOnly && eventData.ratioChange && eventData.ratioChange <= 0) {
+      return false;
+    }
+    
+    if (this.boundEventConfig.negativeChangeOnly && eventData.ratioChange && eventData.ratioChange >= 0) {
+      return false;
+    }
+    
+    // Check distance from bounds
+    if (this.boundEventConfig.minDistanceFromMin && eventData.distanceFromMin < this.boundEventConfig.minDistanceFromMin) {
+      return false;
+    }
+    
+    if (this.boundEventConfig.minDistanceFromMax && eventData.distanceFromMax < this.boundEventConfig.minDistanceFromMax) {
+      return false;
+    }
+    
+    if (this.boundEventConfig.maxDistanceFromMin && eventData.distanceFromMin > this.boundEventConfig.maxDistanceFromMin) {
+      return false;
+    }
+    
+    if (this.boundEventConfig.maxDistanceFromMax && eventData.distanceFromMax > this.boundEventConfig.maxDistanceFromMax) {
+      return false;
+    }
+    
+    // Update previous ratio
+    this._previousRatios.set(entity.id, StatBoundCalculator.calculateRatio(eventData.boundResult));
+    
+    return this.addEffects(entity);
+  }
+}
+
+/**
+ * Bound ratio change applicator that triggers effects based on ratio magnitude changes
+ */
+export class BoundRatioChangeApplicator extends BaseEffectApplicator {
+  private readonly _previousRatios: Map<EntityId, number> = new Map();
+  
+  constructor(
+    id: string,
+    name: string,
+    private readonly boundEventConfig: BoundEventConfig,
+    effectsToAdd: Effect[],
+    effectsToRemove: EffectId[] = []
+  ) {
+    const conditions: EffectCondition[] = [
+      {
+        eventType: EventType.BOUND_RATIO_CHANGED,
+        predicate: (event, context) => {
+          const eventData = event.data as BoundEventData;
+          return eventData.statType === boundEventConfig.statType;
+        },
+        description: `Bound ratio changed for ${boundEventConfig.statType}`
+      }
+    ];
+    
+    super(id, name, conditions, effectsToAdd, effectsToRemove);
+  }
+  
+  handleEvent(event: Event, entityId: EntityId): boolean {
+    return false; // Not used for bound applicators
+  }
+  
+  handleEventWithEntity(event: Event, entity: Entity): boolean {
+    const eventData = event.data as BoundEventData;
+    const previousRatio = this._previousRatios.get(entity.id);
+    
+    // Check ratio change threshold
+    if (this.boundEventConfig.ratioChangeThreshold && eventData.ratioChange) {
+      const absChange = Math.abs(eventData.ratioChange);
+      if (absChange < this.boundEventConfig.ratioChangeThreshold) {
+        return false;
+      }
+    }
+    
+    // Check positive/negative change filters
+    if (this.boundEventConfig.positiveChangeOnly && eventData.ratioChange && eventData.ratioChange <= 0) {
+      return false;
+    }
+    
+    if (this.boundEventConfig.negativeChangeOnly && eventData.ratioChange && eventData.ratioChange >= 0) {
+      return false;
+    }
+    
+    // Update previous ratio
+    this._previousRatios.set(entity.id, StatBoundCalculator.calculateRatio(eventData.boundResult));
+    
+    return this.addEffects(entity);
   }
 }
 

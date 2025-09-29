@@ -12,7 +12,6 @@ import {
   GearEffectApplicator,
   GearEffectApplicatorUtils
 } from '../core/GearEffectApplicators';
-import { ExampleGearEffectApplicators } from './ExampleGearEffectApplicators';
 import { 
   effectApplicatorManager
 } from '../core/EffectApplicator';
@@ -147,26 +146,26 @@ export function runGearPassiveEffectsExample(): void {
   // Set up gear effect applicators
   console.log('\n🎯 Setting up Gear Effect Applicators:');
 
-  // Create gear effect applicators for additional effects
-  const swordApplicator = ExampleGearEffectApplicators.createSwordApplicator(
+  // Create gear effect applicators for additional effects using utility functions
+  const swordApplicator = GearEffectApplicatorUtils.createGearEquippedApplicator(
     'iron-sword',
     'Iron Sword',
-    5 // Additional +5 attack when equipped
+    [new AdditiveEffect('iron-sword-bonus', 'Iron Sword Bonus', 'attack', 5, true, 1)]
   );
 
-  const armorApplicator = ExampleGearEffectApplicators.createArmorApplicator(
+  const armorApplicator = GearEffectApplicatorUtils.createGearEquippedApplicator(
     'iron-armor',
     'Iron Armor',
-    3 // Additional +3 defense when equipped
+    [new AdditiveEffect('iron-armor-bonus', 'Iron Armor Bonus', 'defense', 3, true, 1)]
   );
 
-  const ringApplicator = ExampleGearEffectApplicators.createRingApplicator(
+  const ringApplicator = GearEffectApplicatorUtils.createGearEquippedApplicator(
     'magic-ring',
     'Magic Ring',
-    new Map([
-      ['health', 10], // +10 health
-      ['magic', 2]    // Additional +2 magic
-    ])
+    [
+      new AdditiveEffect('magic-ring-health', 'Magic Ring Health', 'health', 10, true, 1),
+      new AdditiveEffect('magic-ring-magic', 'Magic Ring Magic', 'magic', 2, true, 1)
+    ]
   );
 
   // Register gear effect applicators
